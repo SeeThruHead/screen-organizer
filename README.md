@@ -1,62 +1,49 @@
 # Screen Organizer
 
-A simple macOS app that sits in your menu bar and automatically:
-- **Compresses and moves** `.mov` files (screen recordings) from `~/Screenshots/` to `~/ScreenRecordings/`
-- **Compresses** `.png` files (screenshots) in `~/Screenshots/` to reduce file size
-- **Shows visual feedback** in the menu bar when processing files
+A simple macOS menu bar app that automatically:
+- **Compresses and moves** `.mov` screen recordings from `~/screenshots/` to `~/screen-recordings/`
+- **Compresses** `.png` screenshots in place
+- **Organizes files by date** into `YYYY-MM-DD` subfolders (optional)
+- **Shows visual feedback** — menu bar icon changes to a gear when processing
 
-## Features
+## Install
 
-🎬 **Video Compression**: Reduces `.mov` files by ~66% using FFmpeg  
-🖼️ **Image Compression**: Optimizes `.png` files using ImageMagick  
-👁️ **Visual Feedback**: Menu bar icon changes to gear when processing  
-🚀 **Auto-start**: Can be set to start automatically at login  
-📁 **Quick Access**: Right-click menu to open Screenshots/ScreenRecordings folders  
-📅 **Date Organization**: Organize existing files into date-based folders (YYYY-MM-DD)  
+```bash
+brew install seethruhead/screenorganizer
+```
 
-## Setup
+## Launch
 
-1. **Install dependencies**:
-   ```bash
-   cd ~/Projects/ScreenOrganizer
-   chmod +x setup.sh
-   ./setup.sh
-   ```
+```bash
+open "/Applications/Screen Organizer.app"
+```
 
-2. **Build the app**:
-   ```bash
-   chmod +x build.sh
-   ./build.sh
-   ```
+Enable **Open at Login** from the menu bar icon to start automatically.
 
-3. **Install the app**:
-   ```bash
-   cp -R "build/Screen Organizer.app" /Applications/
-   ```
+## Configuration
 
-4. **Run the app**:
-   ```bash
-   open "/Applications/Screen Organizer.app"
-   ```
+Settings are managed from the menu bar icon, or by editing `~/.config/screenorganizer`:
 
-5. **Auto-start at login** (optional):
-   - Go to System Preferences → Users & Groups → Login Items
-   - Click "+" and add "Screen Organizer.app"
+```
+screenshotsFolder=screenshots
+screenRecordingsFolder=screen-recordings
+videoQuality=medium
+imageQuality=medium
+organizeByDate=false
+```
 
-## How It Works
-
-- The app watches `~/Screenshots/` folder for new files
-- When a `.mov` file appears, it compresses it with FFmpeg and moves to `~/ScreenRecordings/`
-- When a `.png` file appears, it compresses it in place with ImageMagick
-- The menu bar icon shows a camera normally, and a spinning gear when processing
+**Quality levels:** `low` (smallest files), `medium` (balanced), `high` (best quality)
 
 ## Menu Bar Options
 
-Right-click the menu bar icon to:
-- See current status
-- Open Screenshots folder
-- Open ScreenRecordings folder
-- **Organize by Date** - Move all existing files into date-based subfolders (YYYY-MM-DD)
-- Quit the app
+- Open Screenshots / Recordings folder
+- Organize by Date (toggle)
+- Open at Login (toggle)
+- Settings
+- Quit
 
-That's it! Simple and automatic.
+## Dependencies
+
+Installed automatically by Homebrew:
+- [ffmpeg](https://ffmpeg.org/) — video compression
+- [imagemagick](https://imagemagick.org/) — image compression
