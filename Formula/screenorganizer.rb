@@ -1,8 +1,8 @@
 class Screenorganizer < Formula
   desc "Menu bar app that auto-compresses screenshots and screen recordings"
   homepage "https://github.com/SeeThruHead/screen-organizer"
-  url "https://github.com/SeeThruHead/screen-organizer/archive/refs/tags/v1.0.2.tar.gz"
-  sha256 "a4a60d00850857bd4afb5c8460bbe8826d8537b2c734e7e0575f2357b8ad201c"
+  url "https://github.com/SeeThruHead/screen-organizer/archive/refs/tags/v1.0.3.tar.gz"
+  sha256 "bbe6ffcf90f2ceec40d390156e7a964776ff891de293ab7995ba21b6da02f892"
   license "MIT"
 
   depends_on :macos
@@ -42,8 +42,10 @@ class Screenorganizer < Formula
   end
 
   def post_install
-    system "ln", "-sf", "#{prefix}/Screen Organizer.app", "/Applications/Screen Organizer.app"
-    system "open", "/Applications/Screen Organizer.app"
+    target = "/Applications/Screen Organizer.app"
+    File.delete(target) if File.symlink?(target)
+    File.symlink("#{prefix}/Screen Organizer.app", target)
+    system "open", target
   end
 
   def caveats
