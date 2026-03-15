@@ -1,8 +1,8 @@
 class Screenorganizer < Formula
   desc "Menu bar app that auto-compresses screenshots and screen recordings"
   homepage "https://github.com/SeeThruHead/screen-organizer"
-  url "https://github.com/SeeThruHead/screen-organizer/archive/refs/tags/v1.0.1.tar.gz"
-  sha256 "ab2a31ec3ccf0611c4f09ae13965a3278ca7c628b88961e5d507321c3ba18174"
+  url "https://github.com/SeeThruHead/screen-organizer/archive/refs/tags/v1.0.2.tar.gz"
+  sha256 "a4a60d00850857bd4afb5c8460bbe8826d8537b2c734e7e0575f2357b8ad201c"
   license "MIT"
 
   depends_on :macos
@@ -10,7 +10,7 @@ class Screenorganizer < Formula
   depends_on "imagemagick"
 
   def install
-    system "pkill", "-f", "ScreenOrganizer" if system("pgrep", "-f", "ScreenOrganizer", [:out, :err] => "/dev/null")
+    quiet_system "pkill", "-f", "ScreenOrganizer"
     mkdir_p "build"
     system "swiftc", "-o", "build/ScreenOrganizer",
            "ScreenOrganizer/main.swift",
