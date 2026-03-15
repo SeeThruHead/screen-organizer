@@ -5,6 +5,7 @@ class StatusBarController: NSObject {
     private var statusBarItem: NSStatusItem!
     private var fileWatcher: FileWatcher?
     private var organizeByDateItem: NSMenuItem!
+    private var launchAtLoginItem: NSMenuItem!
     
     override init() {
         super.init()
@@ -37,6 +38,11 @@ class StatusBarController: NSObject {
         menu.addItem(organizeByDateItem)
         
         menu.addItem(NSMenuItem.separator())
+        
+        launchAtLoginItem = menuItem("Open at Login", action: #selector(toggleLaunchAtLogin))
+        launchAtLoginItem.state = isLaunchAgentInstalled() ? .on : .off
+        menu.addItem(launchAtLoginItem)
+        
         menu.addItem(menuItem("Settings...", action: #selector(showSettings)))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(menuItem("Quit", action: #selector(quit), key: "q"))
@@ -196,6 +202,54 @@ organizeByDate=\(organizeByDate)
             onProcessingStart: { [weak self] in self?.setProcessing(true) },
             onProcessingComplete: { [weak self] in self?.setProcessing(false) }
         )
+    }
+    
+    @objc private func toggleLaunchAtLogin() {
+        if isLaunchAgentInstalled() {
+            removeLaunchAgent()
+            launchAtLoginItem.state = .off
+        } else {
+            installLaunchAgent()
+            launchAtLoginItem.state = .on
+        }
+    }
+    
+    private var launchAgentPath: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/LaunchAgents/com.shanekeulen.screenorganizer.plist")
+    }
+    
+    private func isLaunchAgentInstalled() -> Bool {
+        FileManager.default.fileExists(atPath: launchAgentPath.path)
+    }
+    
+    private func installLaunchAgent() {
+        let appPath = Bundle.main.executablePath ?? "/Applications/Screen Organizer.app/Contents/MacOS/ScreenOrganizer"
+        let plist = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.shanekeulen.screenorganizer</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>\(appPath)</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>
+"""
+        try? FileManager.default.createDirectory(at: launchAgentPath.deletingLastPathComponent(),
+                                                  withIntermediateDirectories: true)
+        try? plist.write(to: launchAgentPath, atomically: true, encoding: .utf8)
+    }
+    
+    private func removeLaunchAgent() {
+        try? FileManager.default.removeItem(at: launchAgentPath)
     }
     
     @objc private func quit() {
