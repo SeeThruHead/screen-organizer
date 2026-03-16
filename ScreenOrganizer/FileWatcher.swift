@@ -10,8 +10,8 @@ class FileWatcher {
     private let onProcessingComplete: () -> Void
     private var processedFiles: Set<String> = []
     private var isProcessing = false
-    private var cooldown = false
     private var debounceWork: DispatchWorkItem?
+    private var pollTimer: Timer?
     
     init(onProcessingStart: @escaping () -> Void, onProcessingComplete: @escaping () -> Void) {
         self.onProcessingStart = onProcessingStart
@@ -21,6 +21,7 @@ class FileWatcher {
         try? FileManager.default.createDirectory(at: Config.shared.screenRecordingsFolderURL, withIntermediateDirectories: true)
         
         startWatching()
+        startPolling()
     }
     
     private func startWatching() {
@@ -36,7 +37,7 @@ class FileWatcher {
             &context,
             paths,
             FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            0.5,  // 0.5 second latency — batches rapid changes at the OS level
+            0.5,
             UInt32(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes)
         )
         
@@ -47,6 +48,12 @@ class FileWatcher {
         
         FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
         FSEventStreamStart(stream)
+    }
+    
+    private func startPolling() {
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+            self?.checkForNewFiles()
+        }
     }
     
     // Called from the C callback — debounces rapid events
@@ -60,7 +67,7 @@ class FileWatcher {
     }
     
     private func checkForNewFiles() {
-        guard !isProcessing, !cooldown else { return }
+        guard !isProcessing else { return }
         
         let screenshotsURL = Config.shared.screenshotsFolderURL
         
@@ -70,14 +77,14 @@ class FileWatcher {
             options: .skipsHiddenFiles
         ) else { return }
         
-        let movFiles = files.filter {
-            $0.pathExtension.lowercased() == "mov" && !$0.hasDirectoryPath && !processedFiles.contains($0.lastPathComponent)
+        let videoFiles = files.filter {
+            SupportedFormats.video.contains($0.pathExtension.lowercased()) && !$0.hasDirectoryPath && !processedFiles.contains($0.lastPathComponent)
         }
-        let pngFiles = files.filter {
-            $0.pathExtension.lowercased() == "png" && !$0.hasDirectoryPath && !processedFiles.contains($0.lastPathComponent)
+        let imageFiles = files.filter {
+            SupportedFormats.image.contains($0.pathExtension.lowercased()) && !$0.hasDirectoryPath && !processedFiles.contains($0.lastPathComponent)
         }
         
-        guard !movFiles.isEmpty || !pngFiles.isEmpty else { return }
+        guard !videoFiles.isEmpty || !imageFiles.isEmpty else { return }
         
         isProcessing = true
         onProcessingStart()
@@ -86,35 +93,54 @@ class FileWatcher {
             let group = DispatchGroup()
             let concurrent = DispatchQueue(label: "com.screenorganizer.process", attributes: .concurrent)
             
-            for file in movFiles {
+            // Group videos by output name to detect collisions
+            var videoGroups: [String: [URL]] = [:]
+            for file in videoFiles {
+                let outputName = file.deletingPathExtension().lastPathComponent + ".mp4"
+                videoGroups[outputName, default: []].append(file)
+            }
+            
+            // Group images by output name
+            var imageGroups: [String: [URL]] = [:]
+            for file in imageFiles {
+                let ext = file.pathExtension.lowercased()
+                let outputName = (ext == "jpg" || ext == "jpeg")
+                    ? file.lastPathComponent
+                    : file.deletingPathExtension().lastPathComponent + ".jpg"
+                imageGroups[outputName, default: []].append(file)
+            }
+            
+            // Each group runs in parallel; files within a colliding group run sequentially
+            for (_, files) in videoGroups {
                 group.enter()
                 concurrent.async {
-                    self.processor.processVideoFile(file)
-                    DispatchQueue.main.async { self.processedFiles.insert(file.lastPathComponent) }
+                    for file in files {
+                        self.processor.processVideoFile(file)
+                        DispatchQueue.main.async { self.processedFiles.insert(file.lastPathComponent) }
+                    }
                     group.leave()
                 }
             }
-            for file in pngFiles {
+            for (_, files) in imageGroups {
                 group.enter()
                 concurrent.async {
-                    self.processor.processPNGFile(file)
-                    DispatchQueue.main.async { self.processedFiles.insert(file.lastPathComponent) }
+                    for file in files {
+                        self.processor.processImageFile(file)
+                        DispatchQueue.main.async { self.processedFiles.insert(file.lastPathComponent) }
+                    }
                     group.leave()
                 }
             }
             
             group.wait()
             
+            // Sweep any loose files into date folders (e.g. organizeByDate was just turned on)
             if Config.shared.organizeByDate {
                 self.dateOrganizer.organizeFilesByDate()
             }
             
             DispatchQueue.main.async {
                 self.isProcessing = false
-                self.cooldown = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    self.cooldown = false
-                }
                 self.onProcessingComplete()
             }
         }
@@ -122,6 +148,8 @@ class FileWatcher {
     
     func stop() {
         debounceWork?.cancel()
+        pollTimer?.invalidate()
+        pollTimer = nil
         if let stream = stream {
             FSEventStreamStop(stream)
             FSEventStreamInvalidate(stream)

@@ -12,13 +12,13 @@ class DateOrganizer {
     func organizeFilesByDate() {
         print("Starting date-based organization...")
         
-        organizeFolder(name: Config.shared.screenshotsFolder, fileExtensions: ["png", "jpg", "jpeg"])
-        organizeFolder(name: Config.shared.screenRecordingsFolder, fileExtensions: ["mov", "mp4"])
+        organizeFolder(name: Config.shared.screenshotsFolder, fileExtensions: SupportedFormats.image)
+        organizeFolder(name: Config.shared.screenRecordingsFolder, fileExtensions: SupportedFormats.video)
         
         print("Date-based organization complete")
     }
     
-    private func organizeFolder(name: String, fileExtensions: [String]) {
+    private func organizeFolder(name: String, fileExtensions: Set<String>) {
         let folderURL = homeURL.appendingPathComponent(name)
         
         guard let files = try? FileManager.default.contentsOfDirectory(at: folderURL, 

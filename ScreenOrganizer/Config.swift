@@ -24,17 +24,17 @@ struct Config {
         
         var videoCRF: String {
             switch self {
-            case .high: return "20"
-            case .medium: return "28"
-            case .low: return "35"
+            case .high: return "22"
+            case .medium: return "26"
+            case .low: return "32"
             }
         }
         
-        var pngQuality: String {
+        var jpegQuality: String {
             switch self {
             case .high: return "95"
-            case .medium: return "85"
-            case .low: return "70"
+            case .medium: return "90"
+            case .low: return "80"
             }
         }
     }

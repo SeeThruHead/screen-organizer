@@ -17,6 +17,7 @@ swiftc -o build/ScreenOrganizer \
     ScreenOrganizer/FileProcessor.swift \
     ScreenOrganizer/DateOrganizer.swift \
     ScreenOrganizer/Config.swift \
+    ScreenOrganizer/SupportedFormats.swift \
     -framework Cocoa \
     -target x86_64-apple-macos11.0
 
