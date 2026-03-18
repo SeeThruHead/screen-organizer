@@ -41,6 +41,9 @@ sed -i '' 's/$(CURRENT_PROJECT_VERSION)/1/g' "build/Screen Organizer.app/Content
 sed -i '' 's/$(MACOSX_DEPLOYMENT_TARGET)/11.0/g' "build/Screen Organizer.app/Contents/Info.plist"
 sed -i '' 's/$(DEVELOPMENT_LANGUAGE)/en/g' "build/Screen Organizer.app/Contents/Info.plist"
 
+# Ad-hoc code sign
+codesign -s - --force "build/Screen Organizer.app"
+
 echo "✅ Built Screen Organizer.app"
 echo ""
 echo "To install:"
