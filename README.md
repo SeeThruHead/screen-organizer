@@ -9,7 +9,7 @@ A simple macOS menu bar app that automatically:
 ## Install
 
 ```bash
-brew install seethruhead/screenorganizer
+brew install seethruhead/tap/screenorganizer
 ```
 
 ## Launch
