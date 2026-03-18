@@ -32,7 +32,7 @@ cp build/ScreenOrganizer "build/Screen Organizer.app/Contents/MacOS/"
 cp ScreenOrganizer/Info.plist "build/Screen Organizer.app/Contents/"
 
 # Set bundle identifier and version in Info.plist
-sed -i '' 's/$(PRODUCT_BUNDLE_IDENTIFIER)/com.shanekeulen.screenorganizer/g' "build/Screen Organizer.app/Contents/Info.plist"
+sed -i '' 's/$(PRODUCT_BUNDLE_IDENTIFIER)/io.github.seethruhead.screenorganizer/g' "build/Screen Organizer.app/Contents/Info.plist"
 sed -i '' 's/$(EXECUTABLE_NAME)/ScreenOrganizer/g' "build/Screen Organizer.app/Contents/Info.plist"
 sed -i '' 's/$(PRODUCT_NAME)/Screen Organizer/g' "build/Screen Organizer.app/Contents/Info.plist"
 sed -i '' 's/$(PRODUCT_BUNDLE_PACKAGE_TYPE)/APPL/g' "build/Screen Organizer.app/Contents/Info.plist"

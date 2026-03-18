@@ -216,7 +216,7 @@ organizeByDate=\(organizeByDate)
     
     private var launchAgentPath: URL {
         FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/LaunchAgents/com.shanekeulen.screenorganizer.plist")
+            .appendingPathComponent("Library/LaunchAgents/io.github.seethruhead.screenorganizer.plist")
     }
     
     private func isLaunchAgentInstalled() -> Bool {
@@ -231,7 +231,7 @@ organizeByDate=\(organizeByDate)
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.shanekeulen.screenorganizer</string>
+    <string>io.github.seethruhead.screenorganizer</string>
     <key>ProgramArguments</key>
     <array>
         <string>\(appPath)</string>
