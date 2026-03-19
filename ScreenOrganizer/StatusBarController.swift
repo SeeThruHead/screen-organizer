@@ -27,7 +27,8 @@ class StatusBarController: NSObject {
     private func setupMenu() {
         let menu = NSMenu()
         
-        menu.addItem(NSMenuItem(title: "Screen Organizer", action: nil, keyEquivalent: ""))
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        menu.addItem(NSMenuItem(title: "Screen Organizer v\(version)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(menuItem("Open Screenshots Folder", action: #selector(openScreenshotsFolder)))
         menu.addItem(menuItem("Open Recordings Folder", action: #selector(openRecordingsFolder)))
@@ -100,7 +101,8 @@ class StatusBarController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
         
         let alert = NSAlert()
-        alert.messageText = "Screen Organizer Settings"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        alert.messageText = "Screen Organizer v\(version) — Settings"
         alert.informativeText = "Folders are relative to your home directory"
         
         let view = NSView(frame: NSRect(x: 0, y: 0, width: 360, height: 190))
