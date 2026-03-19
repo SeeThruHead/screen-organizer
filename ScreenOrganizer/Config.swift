@@ -7,14 +7,29 @@ struct Config {
     let videoQuality: QualityLevel
     let imageQuality: QualityLevel
     let organizeByDate: Bool
+    let videoCodec: VideoCodec
     
     init(screenshotsFolder: String, screenRecordingsFolder: String,
-         videoQuality: QualityLevel, imageQuality: QualityLevel, organizeByDate: Bool) {
+         videoQuality: QualityLevel, imageQuality: QualityLevel,
+         organizeByDate: Bool, videoCodec: VideoCodec = .h264) {
         self.screenshotsFolder = screenshotsFolder
         self.screenRecordingsFolder = screenRecordingsFolder
         self.videoQuality = videoQuality
         self.imageQuality = imageQuality
         self.organizeByDate = organizeByDate
+        self.videoCodec = videoCodec
+    }
+    
+    enum VideoCodec: String, CaseIterable {
+        case h264 = "h264"
+        case h265 = "h265"
+        
+        var ffmpegLib: String {
+            switch self {
+            case .h264: return "libx264"
+            case .h265: return "libx265"
+            }
+        }
     }
     
     enum QualityLevel: String, CaseIterable {
@@ -57,12 +72,14 @@ struct Config {
             self.videoQuality = parsed.videoQuality
             self.imageQuality = parsed.imageQuality
             self.organizeByDate = parsed.organizeByDate
+            self.videoCodec = parsed.videoCodec
         } else {
             self.screenshotsFolder = "screenshots"
             self.screenRecordingsFolder = "screen-recordings"
             self.videoQuality = .medium
             self.imageQuality = .medium
             self.organizeByDate = false
+            self.videoCodec = .h264
             Config.createDefaultConfig(at: configPath)
         }
     }
@@ -73,6 +90,7 @@ struct Config {
         var videoQuality = QualityLevel.medium
         var imageQuality = QualityLevel.medium
         var organizeByDate = false
+        var videoCodec = VideoCodec.h264
         
         for line in configString.components(separatedBy: .newlines) {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -90,12 +108,14 @@ struct Config {
             case "videoQuality": videoQuality = QualityLevel(rawValue: value) ?? .medium
             case "imageQuality": imageQuality = QualityLevel(rawValue: value) ?? .medium
             case "organizeByDate": organizeByDate = value == "true"
+            case "videoCodec": videoCodec = VideoCodec(rawValue: value) ?? .h264
             default: break
             }
         }
         
         return Config(screenshotsFolder: screenshotsFolder, screenRecordingsFolder: screenRecordingsFolder,
-                      videoQuality: videoQuality, imageQuality: imageQuality, organizeByDate: organizeByDate)
+                      videoQuality: videoQuality, imageQuality: imageQuality,
+                      organizeByDate: organizeByDate, videoCodec: videoCodec)
     }
     
     private static func createDefaultConfig(at url: URL) {
@@ -107,6 +127,9 @@ screenRecordingsFolder=screen-recordings
 # Quality: low, medium, high
 videoQuality=medium
 imageQuality=medium
+
+# Video codec: h264 (plays natively on macOS), h265 (smaller files, needs VLC)
+videoCodec=h264
 
 # Auto-organize files into YYYY-MM-DD subfolders
 organizeByDate=false

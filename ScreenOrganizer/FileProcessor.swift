@@ -38,15 +38,16 @@ class FileProcessor {
     
     func processVideoFile(_ fileURL: URL) {
         let dir = outputDir(for: fileURL, in: Config.shared.screenRecordingsFolderURL)
-        let baseName = fileURL.deletingPathExtension().lastPathComponent + ".mp4"
+        let baseName = fileURL.deletingPathExtension().lastPathComponent + FileWatcher.processedSuffix + ".mp4"
         let outputURL = uniqueURL(for: dir.appendingPathComponent(baseName))
         
         print("Compressing video: \(fileURL.lastPathComponent) → \(outputURL.lastPathComponent)")
         
+        let codec = Config.shared.videoCodec
         let args = [
             ffmpegPath, "-y",
             "-i", fileURL.path,
-            "-c:v", "libx265",
+            "-c:v", codec.ffmpegLib,
             "-crf", Config.shared.videoQuality.videoCRF,
             "-preset", "medium",
             "-c:a", "aac",
@@ -71,9 +72,9 @@ class FileProcessor {
         
         let targetName: String
         if convertToJPEG {
-            targetName = fileURL.deletingPathExtension().lastPathComponent + ".jpg"
+            targetName = fileURL.deletingPathExtension().lastPathComponent + FileWatcher.processedSuffix + ".jpg"
         } else {
-            targetName = fileURL.lastPathComponent
+            targetName = fileURL.deletingPathExtension().lastPathComponent + FileWatcher.processedSuffix + ".jpg"
         }
         
         let finalURL = uniqueURL(for: dir.appendingPathComponent(targetName))

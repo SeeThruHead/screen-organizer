@@ -103,32 +103,41 @@ class StatusBarController: NSObject {
         alert.messageText = "Screen Organizer Settings"
         alert.informativeText = "Folders are relative to your home directory"
         
-        let view = NSView(frame: NSRect(x: 0, y: 0, width: 360, height: 160))
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: 360, height: 190))
         
         let screenshotsLabel = NSTextField(labelWithString: "Screenshots Folder:")
-        screenshotsLabel.frame = NSRect(x: 0, y: 130, width: 150, height: 20)
+        screenshotsLabel.frame = NSRect(x: 0, y: 160, width: 150, height: 20)
         view.addSubview(screenshotsLabel)
         
-        let screenshotsField = NSTextField(frame: NSRect(x: 160, y: 130, width: 190, height: 22))
+        let screenshotsField = NSTextField(frame: NSRect(x: 160, y: 160, width: 190, height: 22))
         screenshotsField.stringValue = Config.shared.screenshotsFolder
         view.addSubview(screenshotsField)
         
         let recordingsLabel = NSTextField(labelWithString: "Recordings Folder:")
-        recordingsLabel.frame = NSRect(x: 0, y: 100, width: 150, height: 20)
+        recordingsLabel.frame = NSRect(x: 0, y: 130, width: 150, height: 20)
         view.addSubview(recordingsLabel)
         
-        let recordingsField = NSTextField(frame: NSRect(x: 160, y: 100, width: 190, height: 22))
+        let recordingsField = NSTextField(frame: NSRect(x: 160, y: 130, width: 190, height: 22))
         recordingsField.stringValue = Config.shared.screenRecordingsFolder
         view.addSubview(recordingsField)
         
         let videoLabel = NSTextField(labelWithString: "Video Quality:")
-        videoLabel.frame = NSRect(x: 0, y: 65, width: 150, height: 20)
+        videoLabel.frame = NSRect(x: 0, y: 95, width: 150, height: 20)
         view.addSubview(videoLabel)
         
-        let videoPopup = NSPopUpButton(frame: NSRect(x: 160, y: 63, width: 100, height: 24))
+        let videoPopup = NSPopUpButton(frame: NSRect(x: 160, y: 93, width: 100, height: 24))
         videoPopup.addItems(withTitles: ["low", "medium", "high"])
         videoPopup.selectItem(withTitle: Config.shared.videoQuality.rawValue)
         view.addSubview(videoPopup)
+        
+        let codecLabel = NSTextField(labelWithString: "Video Codec:")
+        codecLabel.frame = NSRect(x: 0, y: 65, width: 150, height: 20)
+        view.addSubview(codecLabel)
+        
+        let codecPopup = NSPopUpButton(frame: NSRect(x: 160, y: 63, width: 100, height: 24))
+        codecPopup.addItems(withTitles: ["h264", "h265"])
+        codecPopup.selectItem(withTitle: Config.shared.videoCodec.rawValue)
+        view.addSubview(codecPopup)
         
         let imageLabel = NSTextField(labelWithString: "Image Quality:")
         imageLabel.frame = NSRect(x: 0, y: 35, width: 150, height: 20)
@@ -148,16 +157,17 @@ class StatusBarController: NSObject {
                 screenshotsFolder: screenshotsField.stringValue,
                 recordingsFolder: recordingsField.stringValue,
                 videoQuality: videoPopup.selectedItem?.title ?? "medium",
-                imageQuality: imagePopup.selectedItem?.title ?? "medium"
+                imageQuality: imagePopup.selectedItem?.title ?? "medium",
+                videoCodec: codecPopup.selectedItem?.title ?? "h264"
             )
         }
     }
     
     private func saveSettings(screenshotsFolder: String, recordingsFolder: String,
-                              videoQuality: String, imageQuality: String) {
+                              videoQuality: String, imageQuality: String, videoCodec: String) {
         writeConfig(screenshotsFolder: screenshotsFolder, recordingsFolder: recordingsFolder,
                     videoQuality: videoQuality, imageQuality: imageQuality,
-                    organizeByDate: Config.shared.organizeByDate)
+                    videoCodec: videoCodec, organizeByDate: Config.shared.organizeByDate)
     }
     
     private func saveCurrentConfig(organizeByDate: Bool) {
@@ -165,11 +175,13 @@ class StatusBarController: NSObject {
                     recordingsFolder: Config.shared.screenRecordingsFolder,
                     videoQuality: Config.shared.videoQuality.rawValue,
                     imageQuality: Config.shared.imageQuality.rawValue,
+                    videoCodec: Config.shared.videoCodec.rawValue,
                     organizeByDate: organizeByDate)
     }
     
     private func writeConfig(screenshotsFolder: String, recordingsFolder: String,
-                             videoQuality: String, imageQuality: String, organizeByDate: Bool) {
+                             videoQuality: String, imageQuality: String,
+                             videoCodec: String, organizeByDate: Bool) {
         let content = """
 # Screen Organizer Configuration
 screenshotsFolder=\(screenshotsFolder)
@@ -178,6 +190,9 @@ screenRecordingsFolder=\(recordingsFolder)
 # Quality: low, medium, high
 videoQuality=\(videoQuality)
 imageQuality=\(imageQuality)
+
+# Video codec: h264 (plays natively on macOS), h265 (smaller files, needs VLC)
+videoCodec=\(videoCodec)
 
 # Auto-organize files into YYYY-MM-DD subfolders
 organizeByDate=\(organizeByDate)

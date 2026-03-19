@@ -3,12 +3,13 @@ import CoreServices
 
 class FileWatcher {
     
+    static let processedSuffix = "_opt"
+    
     private var stream: FSEventStreamRef?
     private let processor = FileProcessor()
     private let dateOrganizer = DateOrganizer()
     private let onProcessingStart: () -> Void
     private let onProcessingComplete: () -> Void
-    private var processedFiles: Set<String> = []
     private var isProcessing = false
     private var debounceWork: DispatchWorkItem?
     private var pollTimer: Timer?
@@ -22,6 +23,10 @@ class FileWatcher {
         
         startWatching()
         startPolling()
+    }
+    
+    private static func isProcessed(_ url: URL) -> Bool {
+        url.deletingPathExtension().lastPathComponent.hasSuffix(processedSuffix)
     }
     
     private func startWatching() {
@@ -78,10 +83,14 @@ class FileWatcher {
         ) else { return }
         
         let videoFiles = files.filter {
-            SupportedFormats.video.contains($0.pathExtension.lowercased()) && !$0.hasDirectoryPath && !processedFiles.contains($0.lastPathComponent)
+            SupportedFormats.video.contains($0.pathExtension.lowercased())
+                && !$0.hasDirectoryPath
+                && !FileWatcher.isProcessed($0)
         }
         let imageFiles = files.filter {
-            SupportedFormats.image.contains($0.pathExtension.lowercased()) && !$0.hasDirectoryPath && !processedFiles.contains($0.lastPathComponent)
+            SupportedFormats.image.contains($0.pathExtension.lowercased())
+                && !$0.hasDirectoryPath
+                && !FileWatcher.isProcessed($0)
         }
         
         guard !videoFiles.isEmpty || !imageFiles.isEmpty else { return }
@@ -116,7 +125,6 @@ class FileWatcher {
                 concurrent.async {
                     for file in files {
                         self.processor.processVideoFile(file)
-                        DispatchQueue.main.async { self.processedFiles.insert(file.lastPathComponent) }
                     }
                     group.leave()
                 }
@@ -126,7 +134,6 @@ class FileWatcher {
                 concurrent.async {
                     for file in files {
                         self.processor.processImageFile(file)
-                        DispatchQueue.main.async { self.processedFiles.insert(file.lastPathComponent) }
                     }
                     group.leave()
                 }
