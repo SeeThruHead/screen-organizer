@@ -20,7 +20,7 @@ swiftc -o build/ScreenOrganizer \
     ScreenOrganizer/SupportedFormats.swift \
     ScreenOrganizer/Clipboard.swift \
     -framework Cocoa \
-    -target x86_64-apple-macos11.0
+    -target "$(uname -m)-apple-macos11.0"
 
 # Create app bundle
 mkdir -p "build/Screen Organizer.app/Contents/MacOS"
