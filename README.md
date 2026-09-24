@@ -5,6 +5,7 @@ A simple macOS menu bar app that automatically:
 - **Compresses** `.png` screenshots in place
 - **Organizes files by date** into `YYYY-MM-DD` subfolders (optional)
 - **Shows visual feedback** — menu bar icon changes to a gear when processing
+- **Copies each capture to the clipboard** as one item that pastes as the file in Slack or Finder, as the path in a terminal or Claude, and as an image in image fields (optional)
 
 ## Install
 
@@ -30,6 +31,7 @@ screenRecordingsFolder=screen-recordings
 videoQuality=medium
 imageQuality=medium
 organizeByDate=false
+copyToClipboard=true
 ```
 
 **Quality levels:** `low` (smallest files), `medium` (balanced), `high` (best quality)
@@ -38,6 +40,7 @@ organizeByDate=false
 
 - Open Screenshots / Recordings folder
 - Organize by Date (toggle)
+- Copy to Clipboard (toggle)
 - Open at Login (toggle)
 - Settings
 - Quit
