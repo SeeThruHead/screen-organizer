@@ -5,6 +5,7 @@ class StatusBarController: NSObject {
     private var statusBarItem: NSStatusItem!
     private var fileWatcher: FileWatcher?
     private var organizeByDateItem: NSMenuItem!
+    private var copyToClipboardItem: NSMenuItem!
     private var launchAtLoginItem: NSMenuItem!
     
     override init() {
@@ -37,6 +38,10 @@ class StatusBarController: NSObject {
         organizeByDateItem = menuItem("Organize by Date", action: #selector(toggleOrganizeByDate))
         organizeByDateItem.state = Config.shared.organizeByDate ? .on : .off
         menu.addItem(organizeByDateItem)
+        
+        copyToClipboardItem = menuItem("Copy to Clipboard", action: #selector(toggleCopyToClipboard))
+        copyToClipboardItem.state = Config.shared.copyToClipboard ? .on : .off
+        menu.addItem(copyToClipboardItem)
         
         menu.addItem(NSMenuItem.separator())
         
@@ -95,6 +100,18 @@ class StatusBarController: NSObject {
                 DispatchQueue.main.async { self.setProcessing(false) }
             }
         }
+    }
+    
+    @objc private func toggleCopyToClipboard() {
+        let newValue = !Config.shared.copyToClipboard
+        copyToClipboardItem.state = newValue ? .on : .off
+        writeConfig(screenshotsFolder: Config.shared.screenshotsFolder,
+                    recordingsFolder: Config.shared.screenRecordingsFolder,
+                    videoQuality: Config.shared.videoQuality.rawValue,
+                    imageQuality: Config.shared.imageQuality.rawValue,
+                    videoCodec: Config.shared.videoCodec.rawValue,
+                    organizeByDate: Config.shared.organizeByDate,
+                    copyToClipboard: newValue)
     }
     
     @objc private func showSettings() {
@@ -169,7 +186,8 @@ class StatusBarController: NSObject {
                               videoQuality: String, imageQuality: String, videoCodec: String) {
         writeConfig(screenshotsFolder: screenshotsFolder, recordingsFolder: recordingsFolder,
                     videoQuality: videoQuality, imageQuality: imageQuality,
-                    videoCodec: videoCodec, organizeByDate: Config.shared.organizeByDate)
+                    videoCodec: videoCodec, organizeByDate: Config.shared.organizeByDate,
+                    copyToClipboard: Config.shared.copyToClipboard)
     }
     
     private func saveCurrentConfig(organizeByDate: Bool) {
@@ -178,12 +196,13 @@ class StatusBarController: NSObject {
                     videoQuality: Config.shared.videoQuality.rawValue,
                     imageQuality: Config.shared.imageQuality.rawValue,
                     videoCodec: Config.shared.videoCodec.rawValue,
-                    organizeByDate: organizeByDate)
+                    organizeByDate: organizeByDate,
+                    copyToClipboard: Config.shared.copyToClipboard)
     }
     
     private func writeConfig(screenshotsFolder: String, recordingsFolder: String,
                              videoQuality: String, imageQuality: String,
-                             videoCodec: String, organizeByDate: Bool) {
+                             videoCodec: String, organizeByDate: Bool, copyToClipboard: Bool) {
         let content = """
 # Screen Organizer Configuration
 screenshotsFolder=\(screenshotsFolder)
@@ -198,6 +217,9 @@ videoCodec=\(videoCodec)
 
 # Auto-organize files into YYYY-MM-DD subfolders
 organizeByDate=\(organizeByDate)
+
+# Put each processed capture on the clipboard (file, path and image in one item)
+copyToClipboard=\(copyToClipboard)
 """
         let configPath = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".config/screenorganizer")

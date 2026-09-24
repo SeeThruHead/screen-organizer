@@ -57,10 +57,12 @@ class FileProcessor {
         
         if runCommand(args) {
             try? FileManager.default.removeItem(at: fileURL)
+            Clipboard.copyIfEnabled(outputURL)
             print("Done: \(outputURL.lastPathComponent)")
         } else {
             let fallbackURL = uniqueURL(for: dir.appendingPathComponent(fileURL.lastPathComponent))
             try? FileManager.default.moveItem(at: fileURL, to: fallbackURL)
+            Clipboard.copyIfEnabled(fallbackURL)
             print("Moved (no compression): \(fileURL.lastPathComponent)")
         }
     }
@@ -92,6 +94,7 @@ class FileProcessor {
         if runCommand(args) {
             try? FileManager.default.removeItem(at: fileURL)
             try? FileManager.default.moveItem(at: tempURL, to: finalURL)
+            Clipboard.copyIfEnabled(finalURL)
             print("Compressed: \(finalURL.lastPathComponent)")
         } else {
             try? FileManager.default.removeItem(at: tempURL)

@@ -8,16 +8,18 @@ struct Config {
     let imageQuality: QualityLevel
     let organizeByDate: Bool
     let videoCodec: VideoCodec
+    let copyToClipboard: Bool
     
     init(screenshotsFolder: String, screenRecordingsFolder: String,
          videoQuality: QualityLevel, imageQuality: QualityLevel,
-         organizeByDate: Bool, videoCodec: VideoCodec = .h264) {
+         organizeByDate: Bool, videoCodec: VideoCodec = .h264, copyToClipboard: Bool = true) {
         self.screenshotsFolder = screenshotsFolder
         self.screenRecordingsFolder = screenRecordingsFolder
         self.videoQuality = videoQuality
         self.imageQuality = imageQuality
         self.organizeByDate = organizeByDate
         self.videoCodec = videoCodec
+        self.copyToClipboard = copyToClipboard
     }
     
     enum VideoCodec: String, CaseIterable {
@@ -73,6 +75,7 @@ struct Config {
             self.imageQuality = parsed.imageQuality
             self.organizeByDate = parsed.organizeByDate
             self.videoCodec = parsed.videoCodec
+            self.copyToClipboard = parsed.copyToClipboard
         } else {
             self.screenshotsFolder = "screenshots"
             self.screenRecordingsFolder = "screen-recordings"
@@ -80,6 +83,7 @@ struct Config {
             self.imageQuality = .medium
             self.organizeByDate = false
             self.videoCodec = .h264
+            self.copyToClipboard = true
             Config.createDefaultConfig(at: configPath)
         }
     }
@@ -91,6 +95,7 @@ struct Config {
         var imageQuality = QualityLevel.medium
         var organizeByDate = false
         var videoCodec = VideoCodec.h264
+        var copyToClipboard = true
         
         for line in configString.components(separatedBy: .newlines) {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -109,13 +114,15 @@ struct Config {
             case "imageQuality": imageQuality = QualityLevel(rawValue: value) ?? .medium
             case "organizeByDate": organizeByDate = value == "true"
             case "videoCodec": videoCodec = VideoCodec(rawValue: value) ?? .h264
+            case "copyToClipboard": copyToClipboard = value != "false"
             default: break
             }
         }
         
         return Config(screenshotsFolder: screenshotsFolder, screenRecordingsFolder: screenRecordingsFolder,
                       videoQuality: videoQuality, imageQuality: imageQuality,
-                      organizeByDate: organizeByDate, videoCodec: videoCodec)
+                      organizeByDate: organizeByDate, videoCodec: videoCodec,
+                      copyToClipboard: copyToClipboard)
     }
     
     private static func createDefaultConfig(at url: URL) {
@@ -133,6 +140,9 @@ videoCodec=h264
 
 # Auto-organize files into YYYY-MM-DD subfolders
 organizeByDate=false
+
+# Put each processed capture on the clipboard (file, path and image in one item)
+copyToClipboard=true
 """
         let configDir = url.deletingLastPathComponent()
         try? FileManager.default.createDirectory(at: configDir, withIntermediateDirectories: true)
