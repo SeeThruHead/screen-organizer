@@ -88,7 +88,7 @@ class FileProcessor {
             magickPath, fileURL.path,
             "-strip",
             "-quality", Config.shared.imageQuality.jpegQuality,
-            tempURL.path
+            "jpg:" + tempURL.path
         ]
         
         if runCommand(args) {

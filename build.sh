@@ -19,6 +19,7 @@ swiftc -o build/ScreenOrganizer \
     ScreenOrganizer/Config.swift \
     ScreenOrganizer/SupportedFormats.swift \
     ScreenOrganizer/Clipboard.swift \
+    ScreenOrganizer/ScreenshotThumbnail.swift \
     -framework Cocoa \
     -target "$(uname -m)-apple-macos11.0"
 

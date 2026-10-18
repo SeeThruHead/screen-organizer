@@ -6,6 +6,7 @@ class StatusBarController: NSObject {
     private var fileWatcher: FileWatcher?
     private var organizeByDateItem: NSMenuItem!
     private var copyToClipboardItem: NSMenuItem!
+    private var instantScreenshotsItem: NSMenuItem!
     private var launchAtLoginItem: NSMenuItem!
     
     override init() {
@@ -42,7 +43,11 @@ class StatusBarController: NSObject {
         copyToClipboardItem = menuItem("Copy to Clipboard", action: #selector(toggleCopyToClipboard))
         copyToClipboardItem.state = Config.shared.copyToClipboard ? .on : .off
         menu.addItem(copyToClipboardItem)
-        
+
+        instantScreenshotsItem = menuItem("Instant Screenshots (skip 5s thumbnail)", action: #selector(toggleInstantScreenshots))
+        instantScreenshotsItem.state = ScreenshotThumbnail.isEnabled ? .off : .on
+        menu.addItem(instantScreenshotsItem)
+
         menu.addItem(NSMenuItem.separator())
         
         launchAtLoginItem = menuItem("Open at Login", action: #selector(toggleLaunchAtLogin))
@@ -114,6 +119,12 @@ class StatusBarController: NSObject {
                     copyToClipboard: newValue)
     }
     
+    @objc private func toggleInstantScreenshots() {
+        let instant = ScreenshotThumbnail.isEnabled
+        ScreenshotThumbnail.setEnabled(!instant)
+        instantScreenshotsItem.state = instant ? .on : .off
+    }
+
     @objc private func showSettings() {
         NSApp.activate(ignoringOtherApps: true)
         

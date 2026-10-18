@@ -11,6 +11,7 @@ class FileWatcher {
     private let onProcessingStart: () -> Void
     private let onProcessingComplete: () -> Void
     private var isProcessing = false
+    private var recheckAfterProcessing = false
     private var debounceWork: DispatchWorkItem?
     private var pollTimer: Timer?
     
@@ -42,7 +43,7 @@ class FileWatcher {
             &context,
             paths,
             FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            0.5,
+            0.05,
             UInt32(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes)
         )
         
@@ -68,11 +69,14 @@ class FileWatcher {
             self?.checkForNewFiles()
         }
         debounceWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: work)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: work)
     }
     
     private func checkForNewFiles() {
-        guard !isProcessing else { return }
+        guard !isProcessing else {
+            recheckAfterProcessing = true
+            return
+        }
         
         let screenshotsURL = Config.shared.screenshotsFolderURL
         
@@ -149,6 +153,10 @@ class FileWatcher {
             DispatchQueue.main.async {
                 self.isProcessing = false
                 self.onProcessingComplete()
+                if self.recheckAfterProcessing {
+                    self.recheckAfterProcessing = false
+                    self.checkForNewFiles()
+                }
             }
         }
     }
