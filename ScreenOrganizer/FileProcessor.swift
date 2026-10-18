@@ -36,9 +36,18 @@ class FileProcessor {
         return dateFolder
     }
     
+    /// The file's base name with macOS's narrow no-break space (before AM/PM) and any
+    /// other non-ASCII whitespace turned into a plain space, so typed paths match.
+    static func plainName(_ fileURL: URL) -> String {
+        let scalars = fileURL.deletingPathExtension().lastPathComponent.unicodeScalars.map { scalar -> Unicode.Scalar in
+            CharacterSet.whitespaces.contains(scalar) && !scalar.isASCII ? " " : scalar
+        }
+        return String(String.UnicodeScalarView(scalars))
+    }
+
     func processVideoFile(_ fileURL: URL) {
         let dir = outputDir(for: fileURL, in: Config.shared.screenRecordingsFolderURL)
-        let baseName = fileURL.deletingPathExtension().lastPathComponent + FileWatcher.processedSuffix + ".mp4"
+        let baseName = FileProcessor.plainName(fileURL) + FileWatcher.processedSuffix + ".mp4"
         let outputURL = uniqueURL(for: dir.appendingPathComponent(baseName))
         
         print("Compressing video: \(fileURL.lastPathComponent) → \(outputURL.lastPathComponent)")
@@ -60,7 +69,7 @@ class FileProcessor {
             Clipboard.copyIfEnabled(outputURL)
             print("Done: \(outputURL.lastPathComponent)")
         } else {
-            let fallbackURL = uniqueURL(for: dir.appendingPathComponent(fileURL.lastPathComponent))
+            let fallbackURL = uniqueURL(for: dir.appendingPathComponent(FileProcessor.plainName(fileURL) + "." + fileURL.pathExtension))
             try? FileManager.default.moveItem(at: fileURL, to: fallbackURL)
             Clipboard.copyIfEnabled(fallbackURL)
             print("Moved (no compression): \(fileURL.lastPathComponent)")
@@ -68,16 +77,9 @@ class FileProcessor {
     }
     
     func processImageFile(_ fileURL: URL) {
-        let ext = fileURL.pathExtension.lowercased()
-        let convertToJPEG = ext != "jpg" && ext != "jpeg"
         let dir = outputDir(for: fileURL, in: Config.shared.screenshotsFolderURL)
         
-        let targetName: String
-        if convertToJPEG {
-            targetName = fileURL.deletingPathExtension().lastPathComponent + FileWatcher.processedSuffix + ".jpg"
-        } else {
-            targetName = fileURL.deletingPathExtension().lastPathComponent + FileWatcher.processedSuffix + ".jpg"
-        }
+        let targetName = FileProcessor.plainName(fileURL) + FileWatcher.processedSuffix + ".jpg"
         
         let finalURL = uniqueURL(for: dir.appendingPathComponent(targetName))
         let tempURL = fileURL.deletingLastPathComponent().appendingPathComponent(".\(finalURL.lastPathComponent).tmp")
